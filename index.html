@@ -192,6 +192,46 @@
       gap: 10px;
     }
 
+    .power-btn {
+      width: 30px;
+      height: 30px;
+      align-self: center;
+      border-radius: 50%;
+      border: 2px solid #5f6f84;
+      background: radial-gradient(circle at 35% 35%, #bfcad8 0%, #8d9eb4 72%, #72839a 100%);
+      box-shadow:
+        inset 0 3px 5px rgba(45, 58, 76, 0.45),
+        inset 0 -2px 0 rgba(255, 255, 255, 0.26),
+        0 1px 2px rgba(40, 55, 74, 0.22);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .power-btn::before {
+      content: "⏻";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      border: 1px solid rgba(56, 70, 90, 0.65);
+      background: radial-gradient(circle at 40% 36%, #a7b8cc, #7f92a9 78%);
+      box-shadow:
+        inset 0 2px 3px rgba(42, 55, 74, 0.42),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+      color: rgba(36, 47, 61, 0.95);
+      font-size: 15px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    .power-btn:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow:
+        inset 0 3px 5px rgba(44, 56, 72, 0.45),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+    }
+
     .tower-slot {
       height: 26px;
       border: 2px solid #78879a;
@@ -239,6 +279,16 @@
       box-shadow: 0 0 8px rgba(248, 203, 123, 0.7);
     }
 
+    .led.power {
+      background: #d75a57;
+      box-shadow: 0 0 8px rgba(215, 90, 87, 0.7);
+    }
+
+    .led.power.on {
+      background: #7fd884;
+      box-shadow: 0 0 10px rgba(127, 216, 132, 0.85);
+    }
+
     .screen {
       width: 100%;
       height: 100%;
@@ -256,6 +306,17 @@
       gap: clamp(4px, 0.8vmin, 8px);
       overflow: hidden;
       min-height: 0;
+      transition: filter 0.5s ease, opacity 0.5s ease;
+    }
+
+    .monitor.off .screen {
+      filter: brightness(0);
+      opacity: 0.98;
+    }
+
+    .monitor.on .screen {
+      filter: brightness(1);
+      opacity: 1;
     }
 
     /* Win7 Aero 风格标题栏 */
@@ -542,26 +603,39 @@
       content: none;
     }
 
+    .mouse::after {
+      content: none;
+    }
+
     @media (max-width: 680px) {
+      .desktop {
+        width: 100vw;
+        max-width: 100vw;
+        padding: 2px 6px;
+        transform: translateY(-6%) scale(1);
+      }
+
       .hardware {
         grid-template-columns: 1fr;
+        gap: 8px;
       }
 
       .tower {
-        width: min(65vw, 230px);
+        width: min(62vw, 200px);
         height: auto;
-        min-height: min(360px, 44vh);
-        max-height: min(430px, 52vh);
+        min-height: min(260px, 32vh);
+        max-height: min(320px, 40vh);
         justify-self: end;
       }
 
       .desk-view {
-        transform: rotateX(34deg) scale(0.8);
+        transform: rotateX(30deg) scale(0.68);
       }
 
       .monitor {
-        max-height: min(62vh, calc((100dvh - 170px) * 0.9));
-        padding: 8px;
+        width: min(100%, 92vw);
+        max-height: min(46vh, calc((100dvh - 170px) * 0.68));
+        padding: 6px;
       }
 
       .screen {
@@ -578,11 +652,11 @@
       }
 
       .desk-view {
-        grid-template-columns: minmax(0, 1fr) min(34vw, 230px);
+        grid-template-columns: minmax(0, 1fr) min(30vw, 120px);
       }
 
       .mouse {
-        width: min(90px, 22vw);
+        width: min(74px, 20vw);
       }
     }
   </style>
@@ -594,7 +668,7 @@
   <main class="desktop">
     <section class="hardware" aria-label="复古电脑设备">
       <div class="lcd-unit">
-        <section class="monitor" aria-label="液晶显示器">
+        <section class="monitor off" id="monitor" aria-label="液晶显示器">
           <div class="screen">
             <div class="os-titlebar">
               <span>GAME MANAGER 95</span>
@@ -677,12 +751,13 @@
         </div>
       </div>
       <aside class="tower" aria-label="老式主机">
+        <button class="power-btn" id="powerButton" type="button" aria-label="电源开关"></button>
         <div class="tower-slot"></div>
         <div class="tower-slot"></div>
         <div class="tower-drive"></div>
         <div class="tower-slot"></div>
         <div class="tower-leds">
-          <span class="led"></span>
+          <span class="led power" id="powerLed"></span>
           <span class="led warn"></span>
         </div>
       </aside>
@@ -724,78 +799,65 @@
     </section>
   </main>
 
-  <audio id="startupSound" preload="auto">
-    <source src="https://archive.org/download/windows-7-startup-sound/Windows%207%20Startup%20Sound.mp3" type="audio/mpeg">
-    <source src="https://www.myinstants.com/media/sounds/windows-7-startup-sound.mp3" type="audio/mpeg">
-  </audio>
+  <audio id="startupSound" preload="auto" src="./startup.mp3"></audio>
+  <audio id="shutdownSound" preload="auto" src="./shutdown.mp3"></audio>
   <script>
     (function () {
+      const monitor = document.getElementById("monitor");
+      const powerLed = document.getElementById("powerLed");
+      const powerButton = document.getElementById("powerButton");
       const startupSound = document.getElementById("startupSound");
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      let audioCtx = null;
+      const shutdownSound = document.getElementById("shutdownSound");
+      const STARTUP_URL = "./startup.mp3";
+      const SHUTDOWN_URL = "./shutdown.mp3";
+      let isOn = false;
+      let switching = false;
 
-      let played = false;
-      const playSynthFallback = async () => {
-        if (played || !AudioCtx) return false;
-        audioCtx = audioCtx || new AudioCtx();
-        if (audioCtx.state === "suspended") {
-          try {
-            await audioCtx.resume();
-          } catch (_) {
-            return false;
-          }
-        }
-        const now = audioCtx.currentTime + 0.02;
-        const notes = [523.25, 659.25, 783.99, 1046.5];
-        notes.forEach((freq, i) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(freq, now + i * 0.13);
-          gain.gain.setValueAtTime(0.0001, now + i * 0.13);
-          gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.13 + 0.04);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.13 + 0.28);
-          osc.connect(gain).connect(audioCtx.destination);
-          osc.start(now + i * 0.13);
-          osc.stop(now + i * 0.13 + 0.3);
-        });
-        played = true;
-        return true;
-      };
-
-      const tryPlay = async () => {
-        if (played) return;
-        if (!startupSound) {
-          await playSynthFallback();
-          return;
-        }
+      const playAudio = async (url) => {
+        if (!url) return;
         try {
-          startupSound.currentTime = 0;
-          startupSound.volume = 0.95;
-          await startupSound.play();
-          played = true;
+          const oneShot = new Audio(url);
+          oneShot.volume = 0.95;
+          await oneShot.play();
         } catch (_) {
-          /* Autoplay may be blocked or source unavailable. */
-          await playSynthFallback();
+          // Ignore blocked playback.
         }
       };
 
-      window.addEventListener("load", () => {
-        setTimeout(() => {
-          void tryPlay();
-        }, 80);
-      }, { once: true });
-      const playOnGesture = () => {
-        void tryPlay();
-        if (played) {
-          window.removeEventListener("pointerdown", playOnGesture);
-          window.removeEventListener("keydown", playOnGesture);
-          window.removeEventListener("touchstart", playOnGesture);
+      const setState = (nextOn) => {
+        isOn = nextOn;
+        if (monitor) {
+          monitor.classList.toggle("on", nextOn);
+          monitor.classList.toggle("off", !nextOn);
+        }
+        if (powerLed) {
+          powerLed.classList.toggle("on", nextOn);
         }
       };
-      window.addEventListener("pointerdown", playOnGesture);
-      window.addEventListener("keydown", playOnGesture);
-      window.addEventListener("touchstart", playOnGesture);
+
+      const togglePower = async () => {
+        if (switching) return;
+        switching = true;
+        if (isOn) {
+          setState(false);
+          void playAudio(SHUTDOWN_URL);
+        } else {
+          setState(true);
+          void playAudio(STARTUP_URL);
+        }
+        setTimeout(() => {
+          switching = false;
+        }, 500);
+      };
+
+      setState(false);
+      if (startupSound) startupSound.src = STARTUP_URL;
+      if (shutdownSound) shutdownSound.src = SHUTDOWN_URL;
+      if (powerButton) {
+        powerButton.addEventListener("click", () => {
+          void togglePower();
+        });
+      }
     })();
   </script>
 </body>
