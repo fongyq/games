@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>桌面游戏导航</title>
+  <link rel="icon" href="./magnum.ico" type="image/x-icon">
+  <style>
+    :root {
+      --screen-bg: #4a8fd4;
+      --screen-border: #2a5a8a;
+      --win95-gray: #d8d8d8;
+      --win95-title: #000080;
+      --panel: #d9dfe8;
+      --panel-deep: #b8c2cf;
+      --panel-dark: #8f9eb0;
+      --lcd-glow: rgba(230, 248, 255, 0.35);
+      --text-main: #13233a;
+      --text-soft: #4e6482;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      height: 100dvh;
+      max-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
+      color: var(--text-main);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 248, 214, 0.75), transparent 36%),
+        radial-gradient(circle at 85% 28%, rgba(197, 239, 255, 0.62), transparent 40%),
+        linear-gradient(115deg, #f6fbff 0%, #e7f4ff 42%, #f6f9ff 100%);
+      position: relative;
+    }
+
+    /* 模糊家中窗户背景 */
+    .window-blur {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(2.2px);
+      opacity: 0.9;
+      background:
+        linear-gradient(to right,
+          transparent 0%,
+          transparent 20%,
+          rgba(255, 255, 255, 0.26) 20%,
+          rgba(255, 255, 255, 0.26) 22%,
+          transparent 22%,
+          transparent 48%,
+          rgba(255, 255, 255, 0.26) 48%,
+          rgba(255, 255, 255, 0.26) 50%,
+          transparent 50%,
+          transparent 76%,
+          rgba(255, 255, 255, 0.26) 76%,
+          rgba(255, 255, 255, 0.26) 78%,
+          transparent 78%),
+        linear-gradient(to bottom,
+          transparent 0%,
+          transparent 26%,
+          rgba(255, 255, 255, 0.3) 26%,
+          rgba(255, 255, 255, 0.3) 28%,
+          transparent 28%,
+          transparent 54%,
+          rgba(255, 255, 255, 0.3) 54%,
+          rgba(255, 255, 255, 0.3) 56%,
+          transparent 56%),
+        linear-gradient(180deg, rgba(255, 228, 167, 0.16), rgba(197, 228, 255, 0.18));
+    }
+
+    .room-glow {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 75%, rgba(255, 215, 152, 0.25), transparent 42%),
+        radial-gradient(circle at 86% 76%, rgba(166, 210, 255, 0.24), transparent 38%);
+    }
+
+    .desktop {
+      position: relative;
+      z-index: 1;
+      width: min(96vw, 1144px);
+      height: 100%;
+      max-height: 100dvh;
+      padding: clamp(4px, 1.2vmin, 12px) clamp(8px, 1.5vmin, 14px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(4px, 1vmin, 10px);
+      min-height: 0;
+      overflow: hidden;
+      transform: translateY(-10%) scale(1.2);
+      transform-origin: center center;
+    }
+
+    .hardware {
+      width: 100%;
+      flex: 1 1 0;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(34vw, 308px);
+      align-items: end;
+      gap: clamp(16px, 2.7vw, 31px);
+    }
+
+    /* 液晶显示器 + 支架 */
+    .lcd-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 0;
+      min-height: 0;
+      max-height: 100%;
+    }
+
+    /* 显示器放大 50%，保持 16:9 */
+    .monitor {
+      width: min(100%, 1176px);
+      aspect-ratio: 16 / 9;
+      max-height: min(82vh, calc((100dvh - 110px) * 0.95));
+      border-radius: 10px;
+      background: linear-gradient(160deg, #d5dce7 0%, #b4bfcd 85%);
+      border: 6px solid #8c98a8;
+      box-shadow:
+        0 12px 28px rgba(86, 105, 132, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.75),
+        inset 0 -6px 10px rgba(102, 117, 138, 0.22);
+      padding: 10px 10px 12px;
+      position: relative;
+    }
+
+    .lcd-stand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .stand-neck {
+      width: clamp(42px, 9vw, 66px);
+      height: clamp(11px, 2.1vmin, 17px);
+      background: linear-gradient(90deg, #c4ccd8 0%, #9eabb9 45%, #c4ccd8 100%);
+      border: 2px solid #7d8a9a;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .stand-base {
+      width: clamp(132px, 31.5vw, 215px);
+      height: clamp(8px, 1.5vmin, 11px);
+      margin-top: -1px;
+      background: linear-gradient(180deg, #b8c2d0 0%, #97a3b3 100%);
+      border: 2px solid #7d8a9a;
+      border-radius: 4px 4px 6px 6px;
+      box-shadow: 0 4px 12px rgba(67, 84, 106, 0.2);
+    }
+
+    /* 主机：拉宽约 10%、拉高约 50%（相对原先 190×330 量级） */
+    .tower {
+      width: 100%;
+      max-width: 230px;
+      justify-self: end;
+      height: 78%;
+      min-height: min(500px, 56vh);
+      max-height: min(500px, 74vh);
+      border-radius: 10px;
+      border: 5px solid #7f8c9e;
+      background: linear-gradient(180deg, #c5ceda 0%, #a4b1c2 100%);
+      box-shadow:
+        0 14px 24px rgba(67, 84, 106, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      padding: 14px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tower-slot {
+      height: 26px;
+      border: 2px solid #78879a;
+      background: linear-gradient(180deg, #dbe2eb 0%, #bcc8d6 100%);
+      border-radius: 3px;
+    }
+
+    .tower-drive {
+      height: 38px;
+      border: 2px solid #78879a;
+      background: linear-gradient(180deg, #d8e0ea 0%, #b7c3d1 100%);
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .tower-drive::after {
+      content: "";
+      position: absolute;
+      right: 8px;
+      top: 15px;
+      width: 12px;
+      height: 7px;
+      background: #6f7f95;
+      border-radius: 2px;
+    }
+
+    .tower-leds {
+      margin-top: auto;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid #607389;
+      background: #8db2db;
+      box-shadow: 0 0 8px rgba(138, 198, 255, 0.7);
+    }
+
+    .led.warn {
+      background: #f8cb7b;
+      box-shadow: 0 0 8px rgba(248, 203, 123, 0.7);
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      border: 2px solid var(--screen-border);
+      border-radius: 2px;
+      background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 38%, transparent 55%),
+        linear-gradient(180deg, #6ab0e8 0%, var(--screen-bg) 45%, #3d7ec4 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+        inset 0 0 48px var(--lcd-glow);
+      padding: clamp(6px, 1.2vmin, 12px);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: clamp(4px, 0.8vmin, 8px);
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Win7 Aero 风格标题栏 */
+    .os-titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.1) 45%, rgba(45, 125, 204, 0.85) 100%),
+        linear-gradient(90deg, #2a7dd6 0%, #4aa3ff 100%);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 6px 6px 0 0;
+      color: #fff;
+      font-weight: 600;
+      font-size: clamp(11px, 1.35vw, 14px);
+      padding: 4px 6px 4px 8px;
+      flex-shrink: 0;
+      user-select: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .os-titlebar span:first-child {
+      letter-spacing: 0.02em;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .os-buttons {
+      display: flex;
+      gap: 4px;
+    }
+
+    .os-btn {
+      width: 14px;
+      height: 14px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+      background: linear-gradient(180deg, #f6fbff 0%, #b9d9ff 100%);
+      box-sizing: border-box;
+      display: grid;
+      place-items: center;
+      font-size: 0;
+      line-height: 1;
+      color: transparent;
+    }
+
+    .os-btn.close {
+      background: linear-gradient(180deg, #ffb6b0 0%, #ef6357 100%);
+    }
+
+    .desktop-area {
+      position: relative;
+      background:
+        linear-gradient(150deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 42%),
+        radial-gradient(circle at 20% -35%, rgba(255, 255, 255, 0.32), transparent 58%),
+        linear-gradient(180deg, #6ec0ff 0%, #3a95e8 58%, #2f7fce 100%);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      padding: clamp(6px, 1.2vmin, 12px);
+      overflow: hidden;
+      min-height: 0;
+      border-radius: 0 0 6px 6px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    }
+
+    /* 屏幕中央 Win7 风格窗口标志（淡化水印） */
+    .win95-logo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(120px, 28vmin);
+      height: min(120px, 28vmin);
+      opacity: 0.16;
+      pointer-events: none;
+      z-index: 0;
+      filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.15));
+    }
+
+    .win95-logo svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .game-list {
+      position: relative;
+      z-index: 1;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(4px, 1vmin, 10px);
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .game-link {
+      text-decoration: none;
+      color: #0a0a0a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 6px;
+      border: 1px solid transparent;
+      transition: border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .game-link:hover,
+    .game-link:focus-visible {
+      outline: none;
+      border: 1px dotted #000;
+      background: #000080;
+      color: #fff;
+    }
+
+    .game-link:hover .label,
+    .game-link:focus-visible .label {
+      color: inherit;
+    }
+
+    .icon {
+      width: 46px;
+      height: 46px;
+      border: 1px solid #2a5079;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #b6d6f4, #84b7e6);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 2px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .pixel {
+      border-radius: 1px;
+      background: transparent;
+    }
+
+    .gomoku .pixel:nth-child(6),
+    .gomoku .pixel:nth-child(7),
+    .gomoku .pixel:nth-child(10),
+    .gomoku .pixel:nth-child(11) {
+      background: #24364f;
+    }
+
+    .gomoku .pixel:nth-child(1),
+    .gomoku .pixel:nth-child(4),
+    .gomoku .pixel:nth-child(13),
+    .gomoku .pixel:nth-child(16) {
+      background: #f3e5ba;
+      border: 1px solid #bb9e67;
+    }
+
+    .snake .pixel:nth-child(2),
+    .snake .pixel:nth-child(3),
+    .snake .pixel:nth-child(7),
+    .snake .pixel:nth-child(11),
+    .snake .pixel:nth-child(15),
+    .snake .pixel:nth-child(14),
+    .snake .pixel:nth-child(13) {
+      background: #2c8a58;
+    }
+
+    .snake .pixel:nth-child(16) {
+      background: #ef6a59;
+    }
+
+    .tetris .pixel:nth-child(2),
+    .tetris .pixel:nth-child(6),
+    .tetris .pixel:nth-child(10),
+    .tetris .pixel:nth-child(11),
+    .tetris .pixel:nth-child(12),
+    .tetris .pixel:nth-child(14),
+    .tetris .pixel:nth-child(15) {
+      background: #7a6cff;
+    }
+
+    .label {
+      font-size: clamp(14px, 1.8vw, 18px);
+      letter-spacing: 0.2px;
+    }
+
+    /* 坐在桌前、正对屏幕：键盘鼠标斜俯视 */
+    .desk-controls {
+      width: 100%;
+      flex: 0 0 auto;
+      max-width: none;
+      min-height: 0;
+      perspective: 1100px;
+      perspective-origin: 50% 0%;
+    }
+
+    /* 仅 rotateX 俯视，不 rotateZ，上下边与屏幕水平边平行 */
+    .desk-view {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(34vw, 308px);
+      gap: clamp(16px, 2.7vw, 31px);
+      align-items: end;
+      transform: rotateX(40deg) scale(0.86);
+      transform-origin: center top;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    .keyboard {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 3px solid #8a97a9;
+      background: linear-gradient(180deg, #ced6e1 0%, #b0bccd 100%);
+      box-shadow:
+        0 8px 16px rgba(63, 80, 102, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      zoom: 0.88;
+    }
+
+    .key-grid {
+      display: grid;
+      grid-template-columns: repeat(14, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .key {
+      height: 20px;
+      border-radius: 3px;
+      border: 1px solid #7d8898;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-deep) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .key.dark {
+      background: linear-gradient(180deg, #adb8c6 0%, var(--panel-dark) 100%);
+    }
+
+    .key.space {
+      grid-column: span 6;
+    }
+
+    .caption {
+      margin-top: 6px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-soft);
+      letter-spacing: 0.2px;
+    }
+
+    .mouse {
+      width: min(110px, 20vw);
+      aspect-ratio: 4 / 5;
+      height: auto;
+      max-height: 100%;
+      border-radius: 48% 48% 42% 42%;
+      border: 4px solid #8a97a9;
+      background: linear-gradient(180deg, #d8e0ea 0%, #b4c0d0 100%);
+      box-shadow:
+        0 10px 18px rgba(63, 80, 102, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      position: relative;
+    }
+
+    .mouse::before {
+      content: "";
+      position: absolute;
+      top: 26%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 7px;
+      height: 24%;
+      border-radius: 3px;
+      background: #7f8ca0;
+    }
+
+    .mouse::after {
+      content: none;
+    }
+
+    @media (max-width: 680px) {
+      .hardware {
+        grid-template-columns: 1fr;
+      }
+
+      .tower {
+        width: min(65vw, 230px);
+        height: auto;
+        min-height: min(360px, 44vh);
+        max-height: min(430px, 52vh);
+        justify-self: end;
+      }
+
+      .desk-view {
+        transform: rotateX(34deg) scale(0.8);
+      }
+
+      .monitor {
+        max-height: min(62vh, calc((100dvh - 170px) * 0.9));
+        padding: 8px;
+      }
+
+      .screen {
+        padding: 6px;
+      }
+
+      .desktop-area {
+        padding: 6px;
+      }
+
+      .icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      .desk-view {
+        grid-template-columns: minmax(0, 1fr) min(34vw, 230px);
+      }
+
+      .mouse {
+        width: min(90px, 22vw);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="window-blur" aria-hidden="true"></div>
+  <div class="room-glow" aria-hidden="true"></div>
+
+  <main class="desktop">
+    <section class="hardware" aria-label="复古电脑设备">
+      <div class="lcd-unit">
+        <section class="monitor" aria-label="液晶显示器">
+          <div class="screen">
+            <div class="os-titlebar">
+              <span>GAME MANAGER 95</span>
+              <div class="os-buttons" aria-hidden="true">
+                <span class="os-btn" title="最小化">_</span>
+                <span class="os-btn" title="最大化">□</span>
+                <span class="os-btn close" title="关闭">×</span>
+              </div>
+            </div>
+
+            <div class="desktop-area">
+              <div class="win95-logo" aria-hidden="true" title="Windows 95">
+                <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
+                  <title>Windows 7 风格标志</title>
+                  <defs>
+                    <linearGradient id="w7a" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#a7ddff"/>
+                      <stop offset="100%" stop-color="#2f7fce"/>
+                    </linearGradient>
+                    <linearGradient id="w7b" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#95d5ff"/>
+                      <stop offset="100%" stop-color="#246cbb"/>
+                    </linearGradient>
+                  </defs>
+                  <path fill="url(#w7a)" d="M8 14 L30 10 L30 30 L8 33 Z"/>
+                  <path fill="url(#w7b)" d="M34 10 L56 14 L56 33 L34 30 Z"/>
+                  <path fill="url(#w7b)" d="M8 36 L30 33 L30 54 L8 58 Z"/>
+                  <path fill="url(#w7a)" d="M34 33 L56 36 L56 58 L34 54 Z"/>
+                  <path fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.2" d="M8 14 L30 10 L56 14 M8 33 L30 30 L56 33 M8 58 L30 54 L56 58"/>
+                  <path fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.4" d="M30 10 L30 54 M34 10 L34 54"/>
+                </svg>
+              </div>
+              <ul class="game-list">
+                <li>
+                  <a class="game-link" href="https://www.fangyq.cn/gomoku/" target="_self">
+                    <span class="icon gomoku" aria-hidden="true">
+                      <span class="icon-grid">
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      </span>
+                    </span>
+                    <span class="label">五子棋</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="game-link" href="https://www.fangyq.cn/snake/" target="_self">
+                    <span class="icon snake" aria-hidden="true">
+                      <span class="icon-grid">
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      </span>
+                    </span>
+                    <span class="label">贪吃蛇</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="game-link" href="https://www.fangyq.cn/tetris/" target="_self">
+                    <span class="icon tetris" aria-hidden="true">
+                      <span class="icon-grid">
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      </span>
+                    </span>
+                    <span class="label">俄罗斯方块</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <div class="lcd-stand" aria-hidden="true">
+          <div class="stand-neck"></div>
+          <div class="stand-base"></div>
+        </div>
+      </div>
+      <aside class="tower" aria-label="老式主机">
+        <div class="tower-slot"></div>
+        <div class="tower-slot"></div>
+        <div class="tower-drive"></div>
+        <div class="tower-slot"></div>
+        <div class="tower-leds">
+          <span class="led"></span>
+          <span class="led warn"></span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="desk-controls" aria-label="键盘和鼠标">
+      <div class="desk-view">
+        <section class="keyboard" aria-label="老式键盘">
+          <div class="key-grid" aria-hidden="true">
+            <span class="key dark"></span><span class="key dark"></span><span class="key dark"></span><span class="key dark"></span>
+            <span class="key dark"></span><span class="key dark"></span><span class="key dark"></span><span class="key dark"></span>
+            <span class="key dark"></span><span class="key dark"></span><span class="key dark"></span><span class="key dark"></span>
+            <span class="key dark"></span><span class="key dark"></span>
+
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span>
+
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span>
+
+            <span class="key dark"></span><span class="key dark"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key"></span><span class="key"></span><span class="key"></span><span class="key"></span>
+            <span class="key dark"></span><span class="key dark"></span>
+
+            <span class="key dark"></span><span class="key space"></span><span class="key dark"></span>
+            <span class="key dark"></span><span class="key dark"></span><span class="key dark"></span><span class="key dark"></span>
+            <span class="key dark"></span><span class="key dark"></span><span class="key dark"></span>
+          </div>
+          <div class="caption">双击图标，开始游戏</div>
+        </section>
+
+        <aside class="mouse" aria-label="老式鼠标"></aside>
+      </div>
+    </section>
+  </main>
+
+  <audio id="startupSound" preload="auto">
+    <source src="https://archive.org/download/windows-7-startup-sound/Windows%207%20Startup%20Sound.mp3" type="audio/mpeg">
+    <source src="https://www.myinstants.com/media/sounds/windows-7-startup-sound.mp3" type="audio/mpeg">
+  </audio>
+  <script>
+    (function () {
+      const startupSound = document.getElementById("startupSound");
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      let audioCtx = null;
+
+      let played = false;
+      const playSynthFallback = () => {
+        if (played || !AudioCtx) return;
+        audioCtx = audioCtx || new AudioCtx();
+        const now = audioCtx.currentTime + 0.02;
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now + i * 0.13);
+          gain.gain.setValueAtTime(0.0001, now + i * 0.13);
+          gain.gain.exponentialRampToValueAtTime(0.08, now + i * 0.13 + 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.13 + 0.28);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(now + i * 0.13);
+          osc.stop(now + i * 0.13 + 0.3);
+        });
+        played = true;
+      };
+
+      const tryPlay = () => {
+        if (played) return;
+        if (!startupSound) {
+          playSynthFallback();
+          return;
+        }
+        startupSound.currentTime = 0;
+        startupSound.volume = 0.95;
+        const p = startupSound.play();
+        if (p && typeof p.then === "function") {
+          p.then(() => {
+            played = true;
+          }).catch(() => {
+            /* Autoplay may be blocked or source unavailable. */
+            playSynthFallback();
+          });
+        } else {
+          played = true;
+        }
+      };
+
+      window.addEventListener("load", tryPlay, { once: true });
+      const playOnGesture = () => {
+        tryPlay();
+        if (played) {
+          window.removeEventListener("pointerdown", playOnGesture);
+          window.removeEventListener("keydown", playOnGesture);
+          window.removeEventListener("touchstart", playOnGesture);
+        }
+      };
+      window.addEventListener("pointerdown", playOnGesture);
+      window.addEventListener("keydown", playOnGesture);
+      window.addEventListener("touchstart", playOnGesture);
+    })();
+  </script>
+</body>
+</html>
