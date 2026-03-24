@@ -603,10 +603,6 @@
       content: none;
     }
 
-    .mouse::after {
-      content: none;
-    }
-
     @media (max-width: 680px) {
       .desktop {
         width: 100vw;
@@ -616,16 +612,20 @@
       }
 
       .hardware {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        /* 手机端保持 PC 结构：左显示器，右主机 */
+        grid-template-columns: minmax(0, 1fr) minmax(92px, 26vw);
+        gap: 6px;
+        align-items: end;
       }
 
       .tower {
-        width: min(62vw, 200px);
+        width: 100%;
         height: auto;
-        min-height: min(260px, 32vh);
-        max-height: min(320px, 40vh);
+        min-height: min(180px, 24vh);
+        max-height: min(230px, 30vh);
         justify-self: end;
+        padding: 8px;
+        gap: 6px;
       }
 
       .desk-view {
@@ -633,9 +633,9 @@
       }
 
       .monitor {
-        width: min(100%, 92vw);
-        max-height: min(46vh, calc((100dvh - 170px) * 0.68));
-        padding: 6px;
+        width: 100%;
+        max-height: min(42vh, calc((100dvh - 170px) * 0.6));
+        padding: 5px;
       }
 
       .screen {
@@ -652,11 +652,12 @@
       }
 
       .desk-view {
-        grid-template-columns: minmax(0, 1fr) min(30vw, 120px);
+        grid-template-columns: minmax(0, 1fr) minmax(86px, 24vw);
+        gap: 6px;
       }
 
       .mouse {
-        width: min(74px, 20vw);
+        width: min(62px, 18vw);
       }
     }
   </style>
@@ -799,8 +800,8 @@
     </section>
   </main>
 
-  <audio id="startupSound" preload="auto" src="./startup.mp3"></audio>
-  <audio id="shutdownSound" preload="auto" src="./shutdown.mp3"></audio>
+  <audio id="startupSound" preload="auto" src="./startup.wav"></audio>
+  <audio id="shutdownSound" preload="auto" src="./shutdown.wav"></audio>
   <script>
     (function () {
       const monitor = document.getElementById("monitor");
