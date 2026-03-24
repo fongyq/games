@@ -735,9 +735,16 @@
       let audioCtx = null;
 
       let played = false;
-      const playSynthFallback = () => {
-        if (played || !AudioCtx) return;
+      const playSynthFallback = async () => {
+        if (played || !AudioCtx) return false;
         audioCtx = audioCtx || new AudioCtx();
+        if (audioCtx.state === "suspended") {
+          try {
+            await audioCtx.resume();
+          } catch (_) {
+            return false;
+          }
+        }
         const now = audioCtx.currentTime + 0.02;
         const notes = [523.25, 659.25, 783.99, 1046.5];
         notes.forEach((freq, i) => {
@@ -753,32 +760,33 @@
           osc.stop(now + i * 0.13 + 0.3);
         });
         played = true;
+        return true;
       };
 
-      const tryPlay = () => {
+      const tryPlay = async () => {
         if (played) return;
         if (!startupSound) {
-          playSynthFallback();
+          await playSynthFallback();
           return;
         }
-        startupSound.currentTime = 0;
-        startupSound.volume = 0.95;
-        const p = startupSound.play();
-        if (p && typeof p.then === "function") {
-          p.then(() => {
-            played = true;
-          }).catch(() => {
-            /* Autoplay may be blocked or source unavailable. */
-            playSynthFallback();
-          });
-        } else {
+        try {
+          startupSound.currentTime = 0;
+          startupSound.volume = 0.95;
+          await startupSound.play();
           played = true;
+        } catch (_) {
+          /* Autoplay may be blocked or source unavailable. */
+          await playSynthFallback();
         }
       };
 
-      window.addEventListener("load", tryPlay, { once: true });
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          void tryPlay();
+        }, 80);
+      }, { once: true });
       const playOnGesture = () => {
-        tryPlay();
+        void tryPlay();
         if (played) {
           window.removeEventListener("pointerdown", playOnGesture);
           window.removeEventListener("keydown", playOnGesture);
