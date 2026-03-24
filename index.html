@@ -613,13 +613,13 @@
 
       .hardware {
         /* 手机端保持 PC 结构：左显示器，右主机 */
-        grid-template-columns: minmax(0, 1fr) minmax(92px, 26vw);
+        grid-template-columns: minmax(0, 1fr) minmax(84px, 23.4vw);
         gap: 6px;
         align-items: end;
       }
 
       .tower {
-        width: 100%;
+        width: 90%;
         height: auto;
         min-height: min(180px, 24vh);
         max-height: min(230px, 30vh);
@@ -639,16 +639,30 @@
       }
 
       .screen {
-        padding: 6px;
+        padding: 4px;
+        gap: 4px;
       }
 
       .desktop-area {
-        padding: 6px;
+        padding: 4px;
+      }
+
+      .os-titlebar {
+        font-size: 10px;
+        padding: 2px 4px 2px 6px;
+      }
+
+      .game-list {
+        gap: 4px;
+        max-width: 210px;
+        transform: scale(0.84);
+        transform-origin: top left;
+        width: 119%;
       }
 
       .icon {
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
       }
 
       .desk-view {
@@ -658,6 +672,10 @@
 
       .mouse {
         width: min(62px, 18vw);
+      }
+
+      .keyboard {
+        zoom: 0.7;
       }
     }
   </style>
@@ -809,8 +827,8 @@
       const powerButton = document.getElementById("powerButton");
       const startupSound = document.getElementById("startupSound");
       const shutdownSound = document.getElementById("shutdownSound");
-      const STARTUP_URL = "./startup.mp3";
-      const SHUTDOWN_URL = "./shutdown.mp3";
+      const STARTUP_URL = "./startup.wav";
+      const SHUTDOWN_URL = "./shutdown.wav";
       let isOn = false;
       let switching = false;
 
