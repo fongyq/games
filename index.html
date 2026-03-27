@@ -504,6 +504,24 @@
       background: #7a6cff;
     }
 
+    .game2048 .pixel:nth-child(2),
+    .game2048 .pixel:nth-child(3),
+    .game2048 .pixel:nth-child(6),
+    .game2048 .pixel:nth-child(7),
+    .game2048 .pixel:nth-child(10),
+    .game2048 .pixel:nth-child(11),
+    .game2048 .pixel:nth-child(14),
+    .game2048 .pixel:nth-child(15) {
+      background: #e8a34e;
+    }
+
+    .game2048 .pixel:nth-child(1),
+    .game2048 .pixel:nth-child(4),
+    .game2048 .pixel:nth-child(13),
+    .game2048 .pixel:nth-child(16) {
+      background: #f7dcad;
+    }
+
     .label {
       font-size: clamp(14px, 1.8vw, 18px);
       letter-spacing: 0.2px;
@@ -654,10 +672,10 @@
 
       .game-list {
         gap: 4px;
-        max-width: 210px;
-        transform: scale(0.84);
+        max-width: 198px;
+        transform: scale(0.74);
         transform-origin: top left;
-        width: 119%;
+        width: 135%;
       }
 
       .icon {
@@ -760,6 +778,19 @@
                     <span class="label">俄罗斯方块</span>
                   </a>
                 </li>
+              <li>
+                <a class="game-link" href="https://www.fangyq.cn/2048/" target="_self">
+                  <span class="icon game2048" aria-hidden="true">
+                    <span class="icon-grid">
+                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                    </span>
+                  </span>
+                  <span class="label">2048</span>
+                </a>
+              </li>
               </ul>
             </div>
           </div>
