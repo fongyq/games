@@ -407,11 +407,18 @@
       list-style: none;
       margin: 0;
       padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: clamp(4px, 1vmin, 10px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(3, auto);
+      grid-auto-flow: column;
+      column-gap: clamp(8px, 1.4vmin, 14px);
+      row-gap: clamp(4px, 1vmin, 10px);
       width: 100%;
-      max-width: 260px;
+      max-width: min(100%, 380px);
+    }
+
+    .game-list > li {
+      min-width: 0;
     }
 
     .game-link {
@@ -520,6 +527,20 @@
     .game2048 .pixel:nth-child(13),
     .game2048 .pixel:nth-child(16) {
       background: #f7dcad;
+    }
+
+    /* 扫雷：灰格 + 中心地雷 */
+    .minesweeper .pixel {
+      background: #aeb8c8;
+      border: 1px solid rgba(80, 92, 110, 0.35);
+    }
+
+    .minesweeper .pixel:nth-child(6),
+    .minesweeper .pixel:nth-child(7),
+    .minesweeper .pixel:nth-child(10),
+    .minesweeper .pixel:nth-child(11) {
+      background: #2c3238;
+      border-color: #1a1e22;
     }
 
     .label {
@@ -671,16 +692,32 @@
       }
 
       .game-list {
-        gap: 4px;
-        max-width: 190px;
-        transform: scale(0.62);
+        column-gap: 4px;
+        row-gap: 3px;
+        max-width: 268px;
+        transform: scale(0.58);
         transform-origin: top left;
-        width: 161%;
+        width: 172%;
+      }
+
+      .game-link {
+        gap: 6px;
+        padding: 2px 4px;
+      }
+
+      .label {
+        font-size: 11px;
       }
 
       .icon {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .icon-grid {
+        width: 22px;
+        height: 22px;
+        gap: 1px;
       }
 
       .desk-view {
@@ -778,19 +815,32 @@
                     <span class="label">俄罗斯方块</span>
                   </a>
                 </li>
-              <li>
-                <a class="game-link" href="https://www.fangyq.cn/2048/" target="_self">
-                  <span class="icon game2048" aria-hidden="true">
-                    <span class="icon-grid">
-                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
-                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
-                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
-                      <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                <li>
+                  <a class="game-link" href="https://www.fangyq.cn/2048/" target="_self">
+                    <span class="icon game2048" aria-hidden="true">
+                      <span class="icon-grid">
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      </span>
                     </span>
-                  </span>
-                  <span class="label">2048</span>
-                </a>
-              </li>
+                    <span class="label">2048</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="game-link" href="https://www.fangyq.cn/" target="_self">
+                    <span class="icon minesweeper" aria-hidden="true">
+                      <span class="icon-grid">
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                        <span class="pixel"></span><span class="pixel"></span><span class="pixel"></span><span class="pixel"></span>
+                      </span>
+                    </span>
+                    <span class="label">扫雷</span>
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
